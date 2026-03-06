@@ -37,18 +37,13 @@ export async function POST(
     const globalAdminPass = labSettings?.adminPassword || "admin123";
 
     // Verify Password
-    if (
+    const isUserPassMatch =
       currentUser &&
       currentUser.sessionPassword &&
-      currentUser.sessionPassword !== password
-    ) {
-      if (password !== globalAdminPass) {
-        return NextResponse.json(
-          { success: false, error: "Invalid password" },
-          { status: 401 },
-        );
-      }
-    } else if (password !== globalAdminPass) {
+      currentUser.sessionPassword === password;
+    const isAdminPassMatch = password === globalAdminPass;
+
+    if (!isUserPassMatch && !isAdminPassMatch) {
       return NextResponse.json(
         { success: false, error: "Invalid password" },
         { status: 401 },

@@ -8,6 +8,14 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
+    const bodyText = await request.text();
+    let body = {};
+    if (bodyText) {
+      try {
+        body = JSON.parse(bodyText);
+      } catch (e) {}
+    }
+    const { adminPassword } = body as any;
 
     const printer = await prisma.printer.findUnique({
       where: { id },
@@ -27,10 +35,23 @@ export async function POST(
       );
     }
 
+    const labSettings = await prisma.labSettings.findUnique({
+      where: { id: 1 },
+    });
+    const globalAdminPass = labSettings?.adminPassword || "admin123";
+
     const timerToCompare =
       printer.status === "in-use" ? printer.endTime : printer.bufferEndTime;
     const now = new Date();
-    if (new Date(timerToCompare!) > now) {
+
+    // Only check timer if no valid admin password is provided
+    if (new Date(timerToCompare!) > now && adminPassword !== globalAdminPass) {
+      if (adminPassword) {
+        return NextResponse.json(
+          { error: "Invalid admin password" },
+          { status: 401 },
+        );
+      }
       return NextResponse.json(
         { error: "Time has not expired yet" },
         { status: 400 },
@@ -62,9 +83,6 @@ export async function POST(
         });
       }
 
-      const labSettings = await prisma.labSettings.findUnique({
-        where: { id: 1 },
-      });
       const bufferMinutes = labSettings?.bufferMinutes ?? 5;
 
       updatedPrinter = await prisma.printer.update({

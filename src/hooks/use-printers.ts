@@ -183,13 +183,22 @@ export function usePrinters() {
   );
 
   const resolvePrinter = useCallback(
-    async (printerId: string) => {
-      await fetch(`${API_BASE_URL}/printers/${printerId}/resolve`, {
+    async (printerId: string, adminPassword?: string) => {
+      const res = await fetch(`${API_BASE_URL}/printers/${printerId}/resolve`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: adminPassword ? JSON.stringify({ adminPassword }) : undefined,
       });
+      const data = await res.json();
+      if (!res.ok) {
+        if (adminPassword) {
+          return false;
+        }
+        return false;
+      }
       playNotificationSound("finish");
       fetchData();
+      return true;
     },
     [fetchData],
   );

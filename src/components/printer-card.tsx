@@ -24,6 +24,7 @@ import { CountdownTimer } from "./countdown-timer";
 import { BookingDialog } from "./booking-dialog";
 import { ReportBrokenDialog } from "./report-broken-dialog";
 import { AdminFixDialog } from "./admin-fix-dialog";
+import { AdminSkipDialog } from "./admin-skip-dialog";
 import { ForceStopDialog } from "./force-stop-dialog";
 import { cn } from "@/lib/utils";
 import {
@@ -46,7 +47,10 @@ interface PrinterCardProps {
   ) => Promise<boolean> | boolean;
   onReportBroken: (id: string, reason: string) => void;
   onReset: (id: string) => void;
-  onResolve: (id: string) => void;
+  onResolve: (
+    id: string,
+    adminPass?: string,
+  ) => Promise<boolean> | boolean | void;
 }
 
 export function PrinterCard({
@@ -260,17 +264,27 @@ export function PrinterCard({
         )}
 
         {(isInUse || isBuffer) && printer.nextReservation && (
-          <ForceStopDialog
-            printer={printer}
-            variant="admin"
-            onForceStop={(pass, reason, clearQueue) =>
-              onForceStop(printer.id, pass, reason, clearQueue)
-            }
-          />
+          <div className="flex flex-col w-full gap-2">
+            <ForceStopDialog
+              printer={printer}
+              variant="admin"
+              onForceStop={(pass, reason, clearQueue) =>
+                onForceStop(printer.id, pass, reason, clearQueue)
+              }
+            />
+            {isBuffer && (
+              <AdminSkipDialog
+                printer={printer}
+                onSkip={(pass) =>
+                  onResolve(printer.id, pass) as Promise<boolean>
+                }
+              />
+            )}
+          </div>
         )}
 
         {isBuffer && !printer.nextReservation && (
-          <div className="flex w-full gap-2">
+          <div className="flex flex-col w-full gap-2">
             <BookingDialog
               printer={printer}
               isQueueMode
@@ -283,6 +297,10 @@ export function PrinterCard({
               onForceStop={(pass, reason, clearQueue) =>
                 onForceStop(printer.id, pass, reason, clearQueue)
               }
+            />
+            <AdminSkipDialog
+              printer={printer}
+              onSkip={(pass) => onResolve(printer.id, pass) as Promise<boolean>}
             />
           </div>
         )}
