@@ -21,9 +21,20 @@ import {
   Plus,
   Trash2,
   Printer as PrinterIcon,
+  Loader2,
 } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface LabConfigViewProps {
   settings: LabSettings;
@@ -51,21 +62,54 @@ export function LabConfigView({
     model: "",
   });
 
+  const [confirmState, setConfirmState] = useState<{
+    open: boolean;
+    action: "save" | "add" | "remove" | "edit" | null;
+    printerId?: string;
+  }>({ open: false, action: null });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const updateSetting = (key: keyof LabSettings, value: any) => {
     setLocalSettings((prev) => ({ ...prev, [key]: value }));
     setHasChanges(true);
   };
 
-  const handleSaveSettings = () => {
-    onUpdate(localSettings);
-    setHasChanges(false);
+  const executeAction = async () => {
+    setIsSubmitting(true);
+    try {
+      switch (confirmState.action) {
+        case "save":
+          await onUpdate(localSettings);
+          setHasChanges(false);
+          break;
+        case "add":
+          if (newPrinter.name && newPrinter.model) {
+            await onAddPrinter(newPrinter.name, newPrinter.model);
+            setNewPrinter({ name: "", model: "" });
+          }
+          break;
+        case "edit":
+          if (confirmState.printerId) {
+            await onEditPrinter(confirmState.printerId, editPrinterData);
+            setEditingPrinterId(null);
+          }
+          break;
+        case "remove":
+          if (confirmState.printerId) {
+            await onRemovePrinter(confirmState.printerId);
+          }
+          break;
+      }
+    } finally {
+      setIsSubmitting(false);
+      setConfirmState({ open: false, action: null });
+    }
   };
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (newPrinter.name && newPrinter.model) {
-      onAddPrinter(newPrinter.name, newPrinter.model);
-      setNewPrinter({ name: "", model: "" });
+      setConfirmState({ open: true, action: "add" });
     }
   };
 
@@ -198,8 +242,11 @@ export function LabConfigView({
                         <Button
                           size="sm"
                           onClick={() => {
-                            onEditPrinter(p.id, editPrinterData);
-                            setEditingPrinterId(null);
+                            setConfirmState({
+                              open: true,
+                              action: "edit",
+                              printerId: p.id,
+                            });
                           }}
                         >
                           Save
@@ -239,7 +286,13 @@ export function LabConfigView({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onRemovePrinter(p.id)}
+                          onClick={() =>
+                            setConfirmState({
+                              open: true,
+                              action: "remove",
+                              printerId: p.id,
+                            })
+                          }
                           className="h-8 text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -325,7 +378,7 @@ export function LabConfigView({
 
           <div className="flex justify-end pt-4 border-t">
             <Button
-              onClick={handleSaveSettings}
+              onClick={() => setConfirmState({ open: true, action: "save" })}
               disabled={!hasChanges}
               className="px-8"
             >
@@ -334,6 +387,55 @@ export function LabConfigView({
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog
+        open={confirmState.open}
+        onOpenChange={(open) => {
+          if (!open) setConfirmState({ open: false, action: null });
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmState.action === "save" &&
+                "You are about to modify global lab settings."}
+              {confirmState.action === "add" &&
+                "You are adding a new 3D printer to the lab."}
+              {confirmState.action === "edit" &&
+                "You are modifying the details of an existing printer."}
+              {confirmState.action === "remove" &&
+                "This action cannot be undone. This will permanently delete the printer and its queue history."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSubmitting}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                executeAction();
+              }}
+              disabled={isSubmitting}
+              className={
+                confirmState.action === "remove"
+                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  : "bg-blue-600 hover:bg-blue-700 text-white"
+              }
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Confirm"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

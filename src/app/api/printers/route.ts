@@ -18,9 +18,12 @@ export async function POST(request: Request) {
   try {
     const { name, model } = await request.json();
 
-    // We count printers to generate the ID
-    const count = await prisma.printer.count();
-    const id = `PRN-${String(count + 1).padStart(3, "0")}`;
+    // Generate a unique alphanumeric ID
+    const uniqueSuffix = Math.random()
+      .toString(36)
+      .substring(2, 6)
+      .toUpperCase();
+    const id = `PRN-${uniqueSuffix}`;
 
     const newPrinter = await prisma.printer.create({
       data: {

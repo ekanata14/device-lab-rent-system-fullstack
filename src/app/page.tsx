@@ -11,6 +11,7 @@ import {
   Settings,
   Clock,
   ShieldCheck,
+  HelpCircle,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminGuard } from "@/components/admin-guard";
@@ -19,6 +20,8 @@ import { LabConfigView } from "@/components/lab-config-view";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { WelcomeModal } from "@/components/welcome-modal";
+import { ClosedModal } from "@/components/closed-modal";
 
 export default function Home() {
   const {
@@ -41,9 +44,14 @@ export default function Home() {
   } = usePrinters();
 
   const [isMounted, setIsMounted] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
+    const hasSeenWelcome = localStorage.getItem("hasSeenWelcome");
+    if (!hasSeenWelcome) {
+      setShowWelcome(true);
+    }
   }, []);
 
   const labStatus = getLabStatus();
@@ -60,6 +68,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <WelcomeModal open={showWelcome} onOpenChange={setShowWelcome} />
+      <ClosedModal labStatus={getLabStatus()} />
       {/* Header */}
       <header className="border-b bg-card/50 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -86,6 +96,13 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-4 sm:gap-6">
+            <button
+              onClick={() => setShowWelcome(true)}
+              className="flex items-center gap-2 text-sm text-foreground hover:text-primary transition-colors font-medium border rounded-md px-3 py-1.5 shadow-sm bg-card hover:bg-muted"
+            >
+              <HelpCircle className="w-4 h-4" />
+              <span className="hidden sm:inline">Guide</span>
+            </button>
             <ThemeToggle />
             <div className="hidden sm:flex flex-col items-end">
               <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">
