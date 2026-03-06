@@ -79,6 +79,7 @@ export async function POST(
             photoUrl: currentUser.photoUrl || null,
             stopReason: "Time Expired",
             statusAtEnd: "completed",
+            deviceType: printer.type,
           },
         });
       }

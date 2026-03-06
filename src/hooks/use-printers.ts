@@ -204,11 +204,11 @@ export function usePrinters() {
   );
 
   const addPrinter = useCallback(
-    async (name: string, model: string) => {
+    async (name: string, model: string, type: "printer" | "computer") => {
       await fetch(`${API_BASE_URL}/printers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, model }),
+        body: JSON.stringify({ name, model, type }),
       });
       toast({
         title: "Printer Added",

@@ -11,6 +11,7 @@ model Printer {
   id              String         @id
   name            String
   model           String
+  type            String         @default("printer")
   status          String         // available, in-use, broken, buffer
   endTime         DateTime?
   bufferEndTime   DateTime?
@@ -37,6 +38,7 @@ model UsageLog {
   photoUrl     String?
   stopReason   String?
   statusAtEnd  String   // completed, force-stopped, broken
+  deviceType   String   @default("printer")
   
   createdAt    DateTime @default(now())
 }

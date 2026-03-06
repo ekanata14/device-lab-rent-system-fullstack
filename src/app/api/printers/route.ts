@@ -16,20 +16,23 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { name, model } = await request.json();
+    const { name, model, type } = await request.json();
 
     // Generate a unique alphanumeric ID
     const uniqueSuffix = Math.random()
       .toString(36)
       .substring(2, 6)
       .toUpperCase();
-    const id = `PRN-${uniqueSuffix}`;
+
+    const prefix = type === "computer" ? "COM" : "PRN";
+    const id = `${prefix}-${uniqueSuffix}`;
 
     const newPrinter = await prisma.printer.create({
       data: {
         id,
         name,
         model,
+        type: type || "printer",
         status: "available",
       },
     });

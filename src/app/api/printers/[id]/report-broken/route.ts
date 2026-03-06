@@ -37,6 +37,7 @@ export async function POST(
           photoUrl: currentUser.photoUrl || null,
           stopReason: reason || "Printer broke during use",
           statusAtEnd: "broken",
+          deviceType: printer.type,
         },
       });
     }

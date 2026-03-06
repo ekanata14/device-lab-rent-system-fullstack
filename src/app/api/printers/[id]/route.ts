@@ -37,6 +37,7 @@ export async function PATCH(
       data: {
         name: body.name,
         model: body.model,
+        ...(body.type !== undefined && { type: body.type }),
       },
     });
 

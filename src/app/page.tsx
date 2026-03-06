@@ -46,6 +46,9 @@ export default function Home() {
 
   const [isMounted, setIsMounted] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [dashboardTab, setDashboardTab] = useState<"printer" | "computer">(
+    "printer",
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -58,12 +61,16 @@ export default function Home() {
   const labStatus = getLabStatus();
   const isLabOpen = labStatus === "operational";
 
-  const availableCount = printers.filter(
+  const activeDevices = printers.filter(
+    (p) => (p.type || "printer") === dashboardTab,
+  );
+
+  const availableCount = activeDevices.filter(
     (p) => p.status === "available",
   ).length;
-  const inUseCount = printers.filter((p) => p.status === "in-use").length;
-  const bufferCount = printers.filter((p) => p.status === "buffer").length;
-  const brokenCount = printers.filter((p) => p.status === "broken").length;
+  const inUseCount = activeDevices.filter((p) => p.status === "in-use").length;
+  const bufferCount = activeDevices.filter((p) => p.status === "buffer").length;
+  const brokenCount = activeDevices.filter((p) => p.status === "broken").length;
 
   const logoData = PlaceHolderImages.find((img) => img.id === "lab-logo");
 
@@ -160,6 +167,19 @@ export default function Home() {
           </div>
 
           <TabsContent value="dashboard" className="m-0 space-y-8">
+            <div className="flex justify-center mb-2">
+              <Tabs
+                value={dashboardTab}
+                onValueChange={(v: any) => setDashboardTab(v)}
+                className="w-full max-w-[400px]"
+              >
+                <TabsList className="grid w-full grid-cols-2 h-10">
+                  <TabsTrigger value="printer">3D Printers</TabsTrigger>
+                  <TabsTrigger value="computer">Computer Lab</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
             {/* Stats Overview */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="bg-card p-4 rounded-xl border border-primary/20 flex flex-col justify-center">
@@ -167,7 +187,7 @@ export default function Home() {
                   Total Units
                 </span>
                 <span className="text-2xl font-headline font-bold">
-                  {printers.length}
+                  {activeDevices.length}
                 </span>
               </div>
               <div className="bg-card p-4 rounded-xl border border-primary/20 flex flex-col justify-center">
@@ -205,7 +225,7 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {printers.map((printer) => (
+              {activeDevices.map((printer) => (
                 <PrinterCard
                   key={printer.id}
                   printer={printer}

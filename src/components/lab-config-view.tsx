@@ -26,6 +26,13 @@ import {
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -40,7 +47,11 @@ interface LabConfigViewProps {
   settings: LabSettings;
   printers: Printer[];
   onUpdate: (settings: LabSettings) => void;
-  onAddPrinter: (name: string, model: string) => void;
+  onAddPrinter: (
+    name: string,
+    model: string,
+    type: "printer" | "computer",
+  ) => void;
   onRemovePrinter: (id: string) => void;
   onEditPrinter: (id: string, data: Partial<Printer>) => void;
 }
@@ -55,11 +66,28 @@ export function LabConfigView({
 }: LabConfigViewProps) {
   const [localSettings, setLocalSettings] = useState<LabSettings>(settings);
   const [hasChanges, setHasChanges] = useState(false);
-  const [newPrinter, setNewPrinter] = useState({ name: "", model: "" });
-  const [editingPrinterId, setEditingPrinterId] = useState<string | null>(null);
-  const [editPrinterData, setEditPrinterData] = useState({
+  const [newPrinter, setNewPrinter] = useState<{
+    name: string;
+    model: string;
+    type: "printer" | "computer";
+  }>({
     name: "",
     model: "",
+    type: "printer",
+  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<"all" | "printer" | "computer">(
+    "all",
+  );
+  const [editingPrinterId, setEditingPrinterId] = useState<string | null>(null);
+  const [editPrinterData, setEditPrinterData] = useState<{
+    name: string;
+    model: string;
+    type?: "printer" | "computer";
+  }>({
+    name: "",
+    model: "",
+    type: "printer",
   });
 
   const [confirmState, setConfirmState] = useState<{
@@ -84,8 +112,12 @@ export function LabConfigView({
           break;
         case "add":
           if (newPrinter.name && newPrinter.model) {
-            await onAddPrinter(newPrinter.name, newPrinter.model);
-            setNewPrinter({ name: "", model: "" });
+            await onAddPrinter(
+              newPrinter.name,
+              newPrinter.model,
+              newPrinter.type,
+            );
+            setNewPrinter({ name: "", model: "", type: "printer" });
           }
           break;
         case "edit":
@@ -112,6 +144,14 @@ export function LabConfigView({
       setConfirmState({ open: true, action: "add" });
     }
   };
+
+  const filteredPrinters = printers.filter((p) => {
+    const matchesSearch =
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.model.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = filterType === "all" || p.type === filterType;
+    return matchesSearch && matchesType;
+  });
 
   return (
     <div className="grid gap-8 max-w-4xl mx-auto pb-20">
@@ -169,7 +209,7 @@ export function LabConfigView({
         <CardContent className="space-y-6">
           <form
             onSubmit={handleAdd}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg border border-dashed"
+            className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg border border-dashed"
           >
             <div className="space-y-2">
               <Label htmlFor="p-name">Printer Name</Label>
@@ -193,6 +233,23 @@ export function LabConfigView({
                 }
               />
             </div>
+            <div className="space-y-2">
+              <Label>Device Type</Label>
+              <Select
+                value={newPrinter.type}
+                onValueChange={(val: "printer" | "computer") =>
+                  setNewPrinter({ ...newPrinter, type: val })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="printer">3D Printer</SelectItem>
+                  <SelectItem value="computer">Computer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex items-end">
               <Button
                 type="submit"
@@ -205,11 +262,36 @@ export function LabConfigView({
           </form>
 
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground px-1">
-              Active Fleet ({printers.length})
-            </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
+                Active Fleet ({filteredPrinters.length})
+              </h3>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Input
+                  placeholder="Search devices..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-8 max-w-[200px]"
+                />
+                <Select
+                  value={filterType}
+                  onValueChange={(val: "all" | "printer" | "computer") =>
+                    setFilterType(val)
+                  }
+                >
+                  <SelectTrigger className="h-8 w-[130px]">
+                    <SelectValue placeholder="All Devices" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Devices</SelectItem>
+                    <SelectItem value="printer">3D Printers</SelectItem>
+                    <SelectItem value="computer">Computers</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <div className="grid gap-2">
-              {printers.map((p) => (
+              {filteredPrinters.map((p) => (
                 <div
                   key={p.id}
                   className="flex items-center justify-between p-3 bg-card border rounded-lg hover:border-primary/30 transition-colors"
@@ -238,6 +320,23 @@ export function LabConfigView({
                         className="h-8"
                         placeholder="Model"
                       />
+                      <Select
+                        value={editPrinterData.type || "printer"}
+                        onValueChange={(val: "printer" | "computer") =>
+                          setEditPrinterData({
+                            ...editPrinterData,
+                            type: val,
+                          })
+                        }
+                      >
+                        <SelectTrigger className="h-8 w-[120px]">
+                          <SelectValue placeholder="Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="printer">3D Printer</SelectItem>
+                          <SelectItem value="computer">Computer</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <div className="flex items-center gap-1">
                         <Button
                           size="sm"
@@ -264,8 +363,11 @@ export function LabConfigView({
                     <>
                       <div>
                         <span className="font-bold mr-2">{p.name}</span>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-muted-foreground mr-2">
                           {p.model}
+                        </span>
+                        <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                          {p.type || "PRINTER"}
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
@@ -278,6 +380,7 @@ export function LabConfigView({
                             setEditPrinterData({
                               name: p.name,
                               model: p.model,
+                              type: p.type || "printer",
                             });
                           }}
                         >

@@ -35,6 +35,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface UsageLogsViewProps {
   logs: UsageLog[];
@@ -143,15 +150,21 @@ export function UsageLogsView({
   onDeleteLog,
 }: UsageLogsViewProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<"all" | "printer" | "computer">(
+    "all",
+  );
 
   const filteredLogs = logs.filter((log) => {
     const query = searchQuery.toLowerCase();
-    return (
+    const searchMatch =
       log.userName.toLowerCase().includes(query) ||
       log.studentId.toLowerCase().includes(query) ||
       log.printerName.toLowerCase().includes(query) ||
-      log.statusAtEnd.toLowerCase().includes(query)
-    );
+      log.statusAtEnd.toLowerCase().includes(query);
+
+    const typeMatch =
+      filterType === "all" || (log.deviceType || "printer") === filterType;
+    return searchMatch && typeMatch;
   });
 
   if (logs.length === 0) {
@@ -165,14 +178,31 @@ export function UsageLogsView({
 
   return (
     <div className="space-y-4">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Search by user, ID, printer, or status..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9 h-10 w-full md:w-[350px]"
-        />
+      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        <div className="relative flex-1 max-w-[350px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by user, ID, printer, or status..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-10 w-full"
+          />
+        </div>
+        <Select
+          value={filterType}
+          onValueChange={(val: "all" | "printer" | "computer") =>
+            setFilterType(val)
+          }
+        >
+          <SelectTrigger className="h-10 w-full sm:w-[150px]">
+            <SelectValue placeholder="All Devices" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Devices</SelectItem>
+            <SelectItem value="printer">3D Printers</SelectItem>
+            <SelectItem value="computer">Computers</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="bg-card rounded-xl border overflow-hidden shadow-sm">
@@ -209,7 +239,14 @@ export function UsageLogsView({
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell>{log.printerName}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span>{log.printerName}</span>
+                      <span className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-sm font-bold uppercase tracking-widest">
+                        {log.deviceType || "PRINTER"}
+                      </span>
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <Badge
                       variant={

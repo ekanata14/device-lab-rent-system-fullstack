@@ -22,6 +22,7 @@ export interface UsageLog {
   photoUrl?: string;
   stopReason?: string;
   statusAtEnd: "completed" | "force-stopped" | "broken";
+  deviceType?: "printer" | "computer";
 }
 
 export interface LabSettings {
@@ -38,6 +39,7 @@ export interface Printer {
   id: string;
   name: string;
   model: string;
+  type?: "printer" | "computer";
   status: PrinterStatus;
   endTime?: string;
   bufferEndTime?: string;

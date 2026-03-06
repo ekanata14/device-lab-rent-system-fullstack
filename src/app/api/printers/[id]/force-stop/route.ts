@@ -67,6 +67,7 @@ export async function POST(
           photoUrl: currentUser.photoUrl || null,
           stopReason: reason || "User finished",
           statusAtEnd: reason ? "force-stopped" : "completed",
+          deviceType: printer.type,
         },
       });
     }
