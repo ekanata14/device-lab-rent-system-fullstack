@@ -1,13 +1,19 @@
+"use client";
 
-"use client"
-
-import { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { ShieldCheck, Lock } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { ADMIN_PASSWORD } from '@/lib/constants';
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import { ShieldCheck, Lock } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { ADMIN_PASSWORD } from "@/lib/constants";
 
 interface AdminGuardProps {
   children: React.ReactNode;
@@ -15,7 +21,7 @@ interface AdminGuardProps {
 
 export function AdminGuard({ children }: AdminGuardProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState("");
   const { toast } = useToast();
 
   const handleAuth = (e: React.FormEvent) => {
@@ -51,14 +57,16 @@ export function AdminGuard({ children }: AdminGuardProps) {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleAuth} className="space-y-4">
-            <Input 
-              type="password" 
-              placeholder="Master Password" 
+            <PasswordInput
+              placeholder="Master Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoFocus
             />
-            <Button type="submit" className="w-full bg-primary flex items-center gap-2">
+            <Button
+              type="submit"
+              className="w-full bg-primary flex items-center gap-2"
+            >
               <ShieldCheck className="w-4 h-4" /> Authenticate
             </Button>
           </form>

@@ -1,16 +1,32 @@
+"use client";
 
-"use client"
-
-import { useState, useRef, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Printer, UserReservation } from '@/types/printer';
-import { useToast } from '@/hooks/use-toast';
-import { Camera, RefreshCw, Check, AlertCircle, ShieldCheck, Bell, Info } from 'lucide-react';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { useState, useRef, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Printer, UserReservation } from "@/types/printer";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Camera,
+  RefreshCw,
+  Check,
+  AlertCircle,
+  ShieldCheck,
+  Bell,
+  Info,
+} from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface BookingDialogProps {
   printer: Printer;
@@ -19,59 +35,68 @@ interface BookingDialogProps {
   disabled?: boolean;
 }
 
-export function BookingDialog({ printer, onReserve, isQueueMode = false, disabled = false }: BookingDialogProps) {
+export function BookingDialog({
+  printer,
+  onReserve,
+  isQueueMode = false,
+  disabled = false,
+}: BookingDialogProps) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
-  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState<
+    boolean | null
+  >(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  
+
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    studentId: '',
-    duration: '60',
-    sessionPassword: '',
-    notifyWhenReady: false
+    name: "",
+    phone: "",
+    studentId: "",
+    duration: "60",
+    sessionPassword: "",
+    notifyWhenReady: false,
   });
 
   useEffect(() => {
     if (open && !capturedImage) {
       const getCameraPermission = async () => {
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 640, height: 480 },
+          });
           setHasCameraPermission(true);
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
           }
         } catch (error) {
-          console.error('Error accessing camera:', error);
+          console.error("Error accessing camera:", error);
           setHasCameraPermission(false);
         }
       };
       getCameraPermission();
     }
-    
+
     return () => {
       if (videoRef.current?.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       }
     };
   }, [open, capturedImage]);
 
   const capturePhoto = () => {
     if (videoRef.current) {
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       if (ctx) {
         ctx.drawImage(videoRef.current, 0, 0);
-        const dataUrl = canvas.toDataURL('image/jpeg');
+        const dataUrl = canvas.toDataURL("image/jpeg");
         setCapturedImage(dataUrl);
         const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       }
     }
   };
@@ -82,11 +107,16 @@ export function BookingDialog({ printer, onReserve, isQueueMode = false, disable
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.phone || !formData.studentId || !formData.sessionPassword) {
+    if (
+      !formData.name ||
+      !formData.phone ||
+      !formData.studentId ||
+      !formData.sessionPassword
+    ) {
       toast({
         title: "Incomplete details",
         description: "Please fill in all required fields.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -95,7 +125,7 @@ export function BookingDialog({ printer, onReserve, isQueueMode = false, disable
       toast({
         title: "Photo required",
         description: "Please take a verification photo (insurance proof).",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -107,18 +137,29 @@ export function BookingDialog({ printer, onReserve, isQueueMode = false, disable
       durationInMinutes: parseInt(formData.duration),
       photoUrl: capturedImage,
       sessionPassword: formData.sessionPassword,
-      notifyWhenReady: formData.notifyWhenReady
+      notifyWhenReady: formData.notifyWhenReady,
     });
 
     setOpen(false);
     setCapturedImage(null);
-    setFormData({ name: '', phone: '', studentId: '', duration: '60', sessionPassword: '', notifyWhenReady: false });
+    setFormData({
+      name: "",
+      phone: "",
+      studentId: "",
+      duration: "60",
+      sessionPassword: "",
+      notifyWhenReady: false,
+    });
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full" variant={isQueueMode ? "secondary" : "default"} disabled={disabled}>
+        <Button
+          className="w-full"
+          variant={isQueueMode ? "secondary" : "default"}
+          disabled={disabled}
+        >
           {isQueueMode ? "Join Queue" : "Reserve Now"}
         </Button>
       </DialogTrigger>
@@ -128,28 +169,49 @@ export function BookingDialog({ printer, onReserve, isQueueMode = false, disable
             {isQueueMode ? "Queue Registration" : "Insurance & Reservation"}
           </DialogTitle>
           <DialogDescription>
-            {isQueueMode 
+            {isQueueMode
               ? "Provide a photo of your prep/design and your details to join the queue."
               : `You must take a photo with ${printer.name} to confirm its condition.`}
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <div className="relative aspect-video rounded-lg overflow-hidden bg-black border-2 border-primary/20">
             {capturedImage ? (
-              <img src={capturedImage} className="w-full h-full object-cover" alt="Captured" />
+              <img
+                src={capturedImage}
+                className="w-full h-full object-cover"
+                alt="Captured"
+              />
             ) : (
-              <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+              <video
+                ref={videoRef}
+                className="w-full h-full object-cover"
+                autoPlay
+                muted
+                playsInline
+              />
             )}
-            
+
             <div className="absolute bottom-4 left-0 right-0 flex justify-center">
               {capturedImage ? (
-                <Button variant="secondary" size="sm" onClick={resetPhoto} className="gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={resetPhoto}
+                  className="gap-2"
+                >
                   <RefreshCw className="w-4 h-4" /> Retake
                 </Button>
               ) : (
-                <Button variant="default" onClick={capturePhoto} className="gap-2 bg-primary/80 backdrop-blur-sm" disabled={!hasCameraPermission}>
-                  <Camera className="w-4 h-4" /> Capture {isQueueMode ? "Design Proof" : "Printer Photo"}
+                <Button
+                  variant="default"
+                  onClick={capturePhoto}
+                  className="gap-2 bg-primary/80 backdrop-blur-sm"
+                  disabled={!hasCameraPermission}
+                >
+                  <Camera className="w-4 h-4" /> Capture{" "}
+                  {isQueueMode ? "Design Proof" : "Printer Photo"}
                 </Button>
               )}
             </div>
@@ -168,73 +230,98 @@ export function BookingDialog({ printer, onReserve, isQueueMode = false, disable
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="name">Full Name</Label>
-              <Input 
-                id="name" 
-                placeholder="Enter your name" 
-                value={formData.name} 
-                onChange={(e) => setFormData({...formData, name: e.target.value})} 
+              <Input
+                id="name"
+                placeholder="Enter your name"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="studentId">Student ID</Label>
-                <Input 
-                  id="studentId" 
-                  placeholder="ID-12345" 
-                  value={formData.studentId} 
-                  onChange={(e) => setFormData({...formData, studentId: e.target.value})} 
+                <Input
+                  id="studentId"
+                  placeholder="ID-12345"
+                  value={formData.studentId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, studentId: e.target.value })
+                  }
                 />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="phone">Phone Number</Label>
-                <Input 
-                  id="phone" 
-                  type="tel" 
-                  placeholder="555-0000" 
-                  value={formData.phone} 
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})} 
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="555-0000"
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-               <div className="grid gap-2">
+              <div className="grid gap-2">
                 <Label htmlFor="duration">Duration (Min)</Label>
-                <Input 
-                  id="duration" 
-                  type="number" 
-                  value={formData.duration} 
-                  onChange={(e) => setFormData({...formData, duration: e.target.value})} 
+                <Input
+                  id="duration"
+                  type="number"
+                  value={formData.duration}
+                  min="1"
+                  onChange={(e) =>
+                    setFormData({ ...formData, duration: e.target.value })
+                  }
                 />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="sessionPassword">
-                  <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-primary" /> Session Pass</span>
+                  <span className="flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-primary" /> Session
+                    Pass
+                  </span>
                 </Label>
-                <Input 
-                  id="sessionPassword" 
-                  type="password" 
+                <PasswordInput
+                  id="sessionPassword"
                   placeholder="Secret key"
-                  value={formData.sessionPassword} 
-                  onChange={(e) => setFormData({...formData, sessionPassword: e.target.value})} 
+                  value={formData.sessionPassword}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      sessionPassword: e.target.value,
+                    })
+                  }
                 />
                 <div className="flex items-start gap-1.5 mt-1">
                   <Info className="w-3 h-3 text-muted-foreground shrink-0 mt-0.5" />
                   <p className="text-[10px] text-muted-foreground leading-tight italic">
-                    Remember this! You will need it to stop your print early if it fails or if you finish early.
+                    Remember this! You will need it to stop your print early if
+                    it fails or if you finish early.
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center space-x-2 pt-2">
-              <Checkbox 
-                id="notify" 
-                checked={formData.notifyWhenReady} 
-                onCheckedChange={(checked) => setFormData({...formData, notifyWhenReady: checked === true})}
+              <Checkbox
+                id="notify"
+                checked={formData.notifyWhenReady}
+                onCheckedChange={(checked) =>
+                  setFormData({
+                    ...formData,
+                    notifyWhenReady: checked === true,
+                  })
+                }
               />
-              <Label htmlFor="notify" className="text-xs font-normal flex items-center gap-1.5 cursor-pointer">
+              <Label
+                htmlFor="notify"
+                className="text-xs font-normal flex items-center gap-1.5 cursor-pointer"
+              >
                 <Bell className="w-3.5 h-3.5 text-muted-foreground" />
                 Notify me when the printer is ready for my slot
               </Label>
@@ -242,7 +329,8 @@ export function BookingDialog({ printer, onReserve, isQueueMode = false, disable
 
             <DialogFooter className="pt-4">
               <Button type="submit" className="w-full bg-primary gap-2">
-                <Check className="w-4 h-4" /> {isQueueMode ? "Confirm Queue Spot" : "Confirm & Start"}
+                <Check className="w-4 h-4" />{" "}
+                {isQueueMode ? "Confirm Queue Spot" : "Confirm & Start"}
               </Button>
             </DialogFooter>
           </form>

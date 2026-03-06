@@ -12,6 +12,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Button } from "@/components/ui/button";
 import {
   AlertCircle,
@@ -288,8 +289,7 @@ export function LabConfigView({
               <Label className="flex items-center gap-2">
                 Global Admin Password
               </Label>
-              <Input
-                type="password"
+              <PasswordInput
                 placeholder="admin123"
                 value={localSettings.adminPassword || ""}
                 onChange={(e) => updateSetting("adminPassword", e.target.value)}

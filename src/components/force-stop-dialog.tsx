@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
@@ -106,9 +107,8 @@ export function ForceStopDialog({
             <Label htmlFor="pass">
               {variant === "admin" ? "Admin Password" : "Your Session Password"}
             </Label>
-            <Input
+            <PasswordInput
               id="pass"
-              type="password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

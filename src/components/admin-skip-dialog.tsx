@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Printer } from "@/types/printer";
 import { FastForward, ShieldAlert } from "lucide-react";
@@ -73,9 +74,8 @@ export function AdminSkipDialog({ printer, onSkip }: AdminSkipDialogProps) {
         <form onSubmit={handleConfirm} className="space-y-4 pt-2">
           <div className="grid gap-2">
             <Label htmlFor="skip-pass">Admin Password</Label>
-            <Input
+            <PasswordInput
               id="skip-pass"
-              type="password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
