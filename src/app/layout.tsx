@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
-  title: "Lab Purwarupa | Teknologi Kedokteran",
+  title: "Lab iDIG | HealthTech",
   description:
     "Real-time 3D printer status and reservation management system for the 3D Prototype Lab.",
 };

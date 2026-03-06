@@ -22,6 +22,7 @@ import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { WelcomeModal } from "@/components/welcome-modal";
 import { ClosedModal } from "@/components/closed-modal";
+import logoIdig from "../../public/asssets/images/logo-idig.png";
 
 export default function Home() {
   const {
@@ -75,19 +76,16 @@ export default function Home() {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-lg border border-white/10 overflow-hidden relative">
-              {logoData && (
-                <Image
-                  src={logoData.imageUrl}
-                  alt="Logo"
-                  fill
-                  className="object-contain p-1"
-                  data-ai-hint={logoData.imageHint}
-                />
-              )}
+              <Image
+                src={logoIdig}
+                alt="Logo"
+                fill
+                className="object-contain p-1"
+              />{" "}
             </div>
             <div>
               <h1 className="text-xl font-headline font-bold text-foreground leading-tight tracking-tight">
-                Lab Purwarupa
+                Lab iDIG | HealthTech
               </h1>
               <p className="text-[10px] text-primary font-bold uppercase tracking-[0.2em] opacity-80">
                 Teknologi Kedokteran
@@ -251,7 +249,7 @@ export default function Home() {
       <footer className="border-t bg-card/30 py-6 mt-20">
         <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-4">
-            <span>&copy; 2024 3D Prototype Lab Systems</span>
+            <span>&copy; 2026 Lab iDIG HealtTech</span>
             <div className="flex items-center gap-2">
               <Clock className="w-3.5 h-3.5" />
               <span>

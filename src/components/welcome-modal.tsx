@@ -48,7 +48,7 @@ export function WelcomeModal({ open, onOpenChange }: WelcomeModalProps) {
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-            Welcome to Lab Purwarupa! 🖨️
+            Welcome to Lab iDIG HealtTech! 🖨️
           </DialogTitle>
           <DialogDescription className="text-base mt-2">
             Our automated lab reservation system makes it easy to use the 3D
