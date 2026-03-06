@@ -18,9 +18,13 @@ export async function POST(
       return NextResponse.json({ error: "Printer not found" }, { status: 404 });
     }
 
-    if (!printer.currentUser && !printer.nextReservation) {
+    if (
+      printer.status !== "buffer" &&
+      !printer.currentUser &&
+      !printer.nextReservation
+    ) {
       return NextResponse.json(
-        { error: "No active reservation or queue to stop" },
+        { error: "No active reservation, queue, or buffer to stop" },
         { status: 400 },
       );
     }
@@ -44,13 +48,11 @@ export async function POST(
           { status: 401 },
         );
       }
-    } else if (!currentUser) {
-      if (password !== globalAdminPass) {
-        return NextResponse.json(
-          { success: false, error: "Invalid password" },
-          { status: 401 },
-        );
-      }
+    } else if (password !== globalAdminPass) {
+      return NextResponse.json(
+        { success: false, error: "Invalid password" },
+        { status: 401 },
+      );
     }
 
     if (currentUser) {
@@ -83,10 +85,14 @@ export async function POST(
     const bufferMinutes = labSettings?.bufferMinutes ?? 5;
 
     // Determine the status after force stopping
-    if (currentUser) {
+    if (currentUser && !clearQueue) {
       newStatus = "buffer";
       newBufferEndTime = new Date(Date.now() + bufferMinutes * 60000);
-    } else if (printer.status === "buffer") {
+    } else if (
+      printer.status === "buffer" &&
+      !clearQueue &&
+      printer.nextReservation
+    ) {
       newStatus = "buffer";
       newBufferEndTime = printer.bufferEndTime;
     }

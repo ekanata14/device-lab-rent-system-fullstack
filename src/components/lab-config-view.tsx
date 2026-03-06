@@ -41,6 +41,8 @@ export function LabConfigView({
   onRemovePrinter,
   onEditPrinter,
 }: LabConfigViewProps) {
+  const [localSettings, setLocalSettings] = useState<LabSettings>(settings);
+  const [hasChanges, setHasChanges] = useState(false);
   const [newPrinter, setNewPrinter] = useState({ name: "", model: "" });
   const [editingPrinterId, setEditingPrinterId] = useState<string | null>(null);
   const [editPrinterData, setEditPrinterData] = useState({
@@ -48,12 +50,14 @@ export function LabConfigView({
     model: "",
   });
 
-  const handleToggle = (checked: boolean) => {
-    onUpdate({ ...settings, isManuallyClosed: checked });
+  const updateSetting = (key: keyof LabSettings, value: any) => {
+    setLocalSettings((prev) => ({ ...prev, [key]: value }));
+    setHasChanges(true);
   };
 
-  const handleTimeChange = (field: "openTime" | "closeTime", value: string) => {
-    onUpdate({ ...settings, [field]: value });
+  const handleSaveSettings = () => {
+    onUpdate(localSettings);
+    setHasChanges(false);
   };
 
   const handleAdd = (e: React.FormEvent) => {
@@ -87,13 +91,13 @@ export function LabConfigView({
               </p>
             </div>
             <Switch
-              checked={settings.isManuallyClosed}
-              onCheckedChange={handleToggle}
+              checked={localSettings.isManuallyClosed}
+              onCheckedChange={(c) => updateSetting("isManuallyClosed", c)}
               className="data-[state=checked]:bg-destructive"
             />
           </div>
 
-          {settings.isManuallyClosed && (
+          {localSettings.isManuallyClosed && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Lab is Locked</AlertTitle>
@@ -263,16 +267,16 @@ export function LabConfigView({
               <Label>Opening Time</Label>
               <Input
                 type="time"
-                value={settings.openTime}
-                onChange={(e) => handleTimeChange("openTime", e.target.value)}
+                value={localSettings.openTime}
+                onChange={(e) => updateSetting("openTime", e.target.value)}
               />
             </div>
             <div className="space-y-2">
               <Label>Closing Time</Label>
               <Input
                 type="time"
-                value={settings.closeTime}
-                onChange={(e) => handleTimeChange("closeTime", e.target.value)}
+                value={localSettings.closeTime}
+                onChange={(e) => updateSetting("closeTime", e.target.value)}
               />
             </div>
           </div>
@@ -287,13 +291,8 @@ export function LabConfigView({
               <Input
                 type="password"
                 placeholder="admin123"
-                value={settings.adminPassword || ""}
-                onChange={(e) =>
-                  onUpdate({
-                    ...settings,
-                    adminPassword: e.target.value,
-                  })
-                }
+                value={localSettings.adminPassword || ""}
+                onChange={(e) => updateSetting("adminPassword", e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
                 Allows force stop and resolving queue blocks.
@@ -310,21 +309,28 @@ export function LabConfigView({
                 max={60}
                 placeholder="5"
                 value={
-                  settings.bufferMinutes === undefined
+                  localSettings.bufferMinutes === undefined
                     ? 5
-                    : settings.bufferMinutes
+                    : localSettings.bufferMinutes
                 }
                 onChange={(e) =>
-                  onUpdate({
-                    ...settings,
-                    bufferMinutes: parseInt(e.target.value) || 0,
-                  })
+                  updateSetting("bufferMinutes", parseInt(e.target.value) || 0)
                 }
               />
               <p className="text-xs text-muted-foreground">
                 Cooldown duration between reservations.
               </p>
             </div>
+          </div>
+
+          <div className="flex justify-end pt-4 border-t">
+            <Button
+              onClick={handleSaveSettings}
+              disabled={!hasChanges}
+              className="px-8"
+            >
+              Save Settings
+            </Button>
           </div>
         </CardContent>
       </Card>
