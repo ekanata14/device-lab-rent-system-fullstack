@@ -33,8 +33,8 @@ export async function saveBase64Image(
 
   const fileName = `${Date.now()}-${uuidv4()}.${extension}`;
 
-  // Resolve path relative to process.cwd()/public
-  const targetDir = path.join(process.cwd(), "public", "uploads", directory);
+  // Resolve path relative to process.cwd()
+  const targetDir = path.join(process.cwd(), "uploads", directory);
   const filePath = path.join(targetDir, fileName);
 
   try {
@@ -44,8 +44,8 @@ export async function saveBase64Image(
     // Write buffer via Promise I/O
     await writeFile(filePath, buffer);
 
-    // Return URL meant for public static Next.js fetching
-    return `/uploads/${directory}/${fileName}`;
+    // Return URL meant for the API fetching
+    return `/api/uploads/${directory}/${fileName}`;
   } catch (error) {
     console.error("Failed to save base64 image:", error);
     throw new Error("Disk I/O failure while saving image");
