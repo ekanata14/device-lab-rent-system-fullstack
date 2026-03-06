@@ -45,6 +45,7 @@ export async function PATCH(
 
     return NextResponse.json(updatedPrinter, { status: 200 });
   } catch (error) {
+    console.error("[PATCH PRINTER ERROR]", error);
     return NextResponse.json(
       { error: "Failed to update printer" },
       { status: 500 },

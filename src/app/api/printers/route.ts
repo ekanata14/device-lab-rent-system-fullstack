@@ -42,6 +42,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(newPrinter, { status: 201 });
   } catch (error) {
+    console.error("[POST PRINTER ERROR]", error);
     return NextResponse.json(
       { error: "Failed to create printer" },
       { status: 400 },
