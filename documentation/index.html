@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab iDIG Device Rental System — System Documentation</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    /* ─── Design tokens ─── */
+    :root {
+      --bg:        #f8f9fa;
+      --surface:   #ffffff;
+      --border:    #e2e8f0;
+      --text:      #1a202c;
+      --muted:     #64748b;
+      --accent:    #3b82f6;
+      --accent-bg: #eff6ff;
+      --code-bg:   #f1f5f9;
+      --shadow:    0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+      --sidebar-w: 240px;
+    }
+    [data-theme="dark"] {
+      --bg:        #0f172a;
+      --surface:   #1e293b;
+      --border:    #334155;
+      --text:      #e2e8f0;
+      --muted:     #94a3b8;
+      --accent:    #60a5fa;
+      --accent-bg: #1e3a5f;
+      --code-bg:   #0f1e35;
+      --shadow:    0 1px 3px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
+    }
+
+    /* ─── Reset & base ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ─── Sidebar ─── */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .sidebar-logo h1 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      line-height: 1.3;
+    }
+    .sidebar-logo p {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .sidebar nav { flex: 1; }
+    .nav-section {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+      padding: 8px 20px 4px;
+      margin-top: 8px;
+    }
+    .sidebar nav a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 20px;
+      font-size: 13px;
+      color: var(--text);
+      text-decoration: none;
+      border-left: 3px solid transparent;
+      transition: all .15s;
+    }
+    .sidebar nav a:hover {
+      background: var(--accent-bg);
+      color: var(--accent);
+      border-left-color: var(--accent);
+    }
+    .sidebar nav a .badge {
+      font-size: 10px;
+      background: var(--accent-bg);
+      color: var(--accent);
+      padding: 1px 6px;
+      border-radius: 99px;
+      margin-left: auto;
+    }
+    .theme-toggle {
+      margin: 16px 20px 0;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .theme-toggle button {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background .15s;
+    }
+    .theme-toggle button:hover { background: var(--accent-bg); color: var(--accent); }
+
+    /* ─── Main content ─── */
+    .main {
+      flex: 1;
+      min-width: 0;
+      padding: 40px 48px;
+      max-width: calc(100% - var(--sidebar-w));
+    }
+
+    /* ─── Page header ─── */
+    .page-header {
+      margin-bottom: 48px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-header .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--accent);
+      background: var(--accent-bg);
+      padding: 3px 10px;
+      border-radius: 99px;
+      margin-bottom: 12px;
+    }
+    .page-header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      margin-bottom: 8px;
+    }
+    .page-header p { color: var(--muted); font-size: 15px; max-width: 640px; }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .meta-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .meta-card .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .meta-card .value { font-size: 14px; font-weight: 600; margin-top: 2px; }
+
+    /* ─── Diagram sections ─── */
+    .diagram-section {
+      margin-bottom: 64px;
+    }
+    .section-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .section-number {
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 800;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+    }
+    .section-header h2 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -.01em;
+    }
+    .section-header p { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+    .diagram-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .diagram-card .diagram-render {
+      padding: 32px;
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+    }
+    .diagram-card .diagram-render .mermaid {
+      max-width: 100%;
+    }
+
+    /* ─── Code block ─── */
+    .code-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: var(--code-bg);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .code-header span { font-weight: 600; }
+    .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 11px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .copy-btn:hover { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+    .code-block pre {
+      padding: 20px;
+      overflow-x: auto;
+      font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--code-bg);
+    }
+
+    /* ─── Lifecycle diagram (custom) ─── */
+    .lifecycle {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin: 16px 0;
+      padding: 16px;
+      background: var(--code-bg);
+      border-radius: 10px;
+      font-size: 13px;
+    }
+    .lc-state {
+      padding: 4px 14px;
+      border-radius: 99px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+    .lc-available  { background: #dcfce7; color: #166534; }
+    .lc-inuse      { background: #dbeafe; color: #1e40af; }
+    .lc-buffer     { background: #fef9c3; color: #713f12; }
+    .lc-broken     { background: #fee2e2; color: #991b1b; }
+    [data-theme="dark"] .lc-available  { background: #14532d; color: #86efac; }
+    [data-theme="dark"] .lc-inuse      { background: #1e3a5f; color: #93c5fd; }
+    [data-theme="dark"] .lc-buffer     { background: #422006; color: #fde68a; }
+    [data-theme="dark"] .lc-broken     { background: #450a0a; color: #fca5a5; }
+    .lc-arrow { color: var(--muted); font-weight: 600; }
+
+    /* ─── Info box ─── */
+    .info-box {
+      background: var(--accent-bg);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    .info-box .icon { font-size: 16px; }
+
+    /* ─── Print ─── */
+    @media print {
+      .sidebar { display: none; }
+      .main { max-width: 100%; padding: 20px; }
+      .diagram-card { box-shadow: none; border: 1px solid #ccc; }
+      .code-block { display: none; }
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100%; min-width: unset; height: auto; position: relative; }
+      .main { max-width: 100%; padding: 24px 16px; }
+    }
+
+    /* ─── Mermaid dark theme override ─── */
+    [data-theme="dark"] .mermaid svg {
+      background: transparent !important;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>Lab iDIG<br>Device Rental System</h1>
+    <p>System Documentation</p>
+  </div>
+  <nav>
+    <div class="nav-section">Diagrams</div>
+    <a href="#use-case">
+      <span>👥</span> Use Case
+      <span class="badge">UCD</span>
+    </a>
+    <a href="#dfd-level-0">
+      <span>🌐</span> DFD Level 0
+      <span class="badge">L0</span>
+    </a>
+    <a href="#dfd-level-1">
+      <span>🔀</span> DFD Level 1
+      <span class="badge">L1</span>
+    </a>
+    <a href="#erd">
+      <span>🗄️</span> ERD
+      <span class="badge">DB</span>
+    </a>
+    <div class="nav-section">Reference</div>
+    <a href="#api-ref"><span>📡</span> API Endpoints</a>
+    <a href="#lifecycle"><span>🔄</span> Device Lifecycle</a>
+  </nav>
+  <div class="theme-toggle">
+    <button onclick="toggleTheme()">
+      <span id="theme-icon">🌙</span>
+      <span id="theme-label">Dark Mode</span>
+    </button>
+  </div>
+</aside>
+
+<!-- ═══════════════════════ MAIN ═══════════════════════ -->
+<main class="main">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="tag">System Documentation</div>
+    <h1>Lab iDIG HealthTech<br>Device Rental System</h1>
+    <p>Architecture and data flow documentation for the Next.js 15 fullstack device reservation management system — covering use cases, data flows (Level 0 &amp; 1), and entity relationships.</p>
+    <div class="meta-grid">
+      <div class="meta-card">
+        <div class="label">Framework</div>
+        <div class="value">Next.js 15</div>
+      </div>
+      <div class="meta-card">
+        <div class="label">Database</div>
+        <div class="value">MySQL + Prisma</div>
+      </div>
+      <div class="meta-card">
+        <div class="label">Real-time</div>
+        <div class="value">Pusher.js</div>
+      </div>
+      <div class="meta-card">
+        <div class="label">Devices</div>
+        <div class="value">3D Printers &amp; Computers</div>
+      </div>
+      <div class="meta-card">
+        <div class="label">Auth Model</div>
+        <div class="value">Password-based (Admin)</div>
+      </div>
+      <div class="meta-card">
+        <div class="label">Tables</div>
+        <div class="value">Printer · UsageLog · LabSettings</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────────── USE CASE ─────────────────── -->
+  <section class="diagram-section" id="use-case">
+    <div class="section-header">
+      <div class="section-number">1</div>
+      <div>
+        <h2>Use Case Diagram</h2>
+        <p>Actors, use cases, and their relationships within the system boundary.</p>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <span class="icon">ℹ️</span>
+      <div>
+        <strong>Two actors:</strong> <em>User (Student)</em> — public, no authentication required &nbsp;|&nbsp; <em>Admin</em> — all user actions plus management features, gated by password entry.
+        Dashed lines denote <code>&lt;&lt;include&gt;&gt;</code> and <code>&lt;&lt;extend&gt;&gt;</code> relationships.
+      </div>
+    </div>
+
+    <div class="diagram-card">
+      <div class="diagram-render">
+        <div class="mermaid" id="mermaid-usecase">
+flowchart TB
+    UserActor(["👤 User / Student"])
+    AdminActor(["🔐 Admin"])
+
+    subgraph SystemBoundary["  🖥️  Lab Device Rental System  "]
+        direction TB
+
+        subgraph UC_USER["User Actions"]
+            UC1(["View Device Status"])
+            UC2(["Reserve Device"])
+            UC3(["Join Queue"])
+            UC4(["Stop Own Session"])
+            UC5(["Report Broken Device"])
+        end
+
+        UC_Auth(["Enter Admin Password"])
+
+        subgraph UC_ADMIN["Admin-Only Actions"]
+            UC6(["Force-Stop Any Session"])
+            UC7(["Skip Maintenance Buffer"])
+            UC8(["Mark Device as Fixed"])
+            UC11(["View Usage Logs"])
+            UC12(["Edit Usage Log"])
+            UC13(["Delete Usage Log"])
+
+            subgraph UC_DEVICES["Manage Devices"]
+                UC9a(["Add Device"])
+                UC9b(["Edit Device"])
+                UC9c(["Delete Device"])
+            end
+
+            subgraph UC_CONFIG["Configure Lab Settings"]
+                UC10a(["Set Open / Close Hours"])
+                UC10b(["Toggle Manual Closure"])
+                UC10c(["Change Admin Password"])
+                UC10d(["Set Buffer Duration"])
+            end
+        end
+    end
+
+    UserActor --> UC1
+    UserActor --> UC2
+    UserActor --> UC3
+    UserActor --> UC4
+    UserActor --> UC5
+
+    AdminActor --> UC1
+    AdminActor --> UC2
+    AdminActor --> UC3
+    AdminActor --> UC4
+    AdminActor --> UC5
+    AdminActor --> UC_Auth
+
+    UC_Auth -. "<<include>>" .-> UC6
+    UC_Auth -. "<<include>>" .-> UC7
+    UC_Auth -. "<<include>>" .-> UC8
+    UC_Auth -. "<<include>>" .-> UC_DEVICES
+    UC_Auth -. "<<include>>" .-> UC_CONFIG
+    UC_Auth -. "<<include>>" .-> UC11
+    UC_Auth -. "<<include>>" .-> UC12
+    UC_Auth -. "<<include>>" .-> UC13
+
+    UC6 -. "<<extend>>" .-> UC4
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span>Mermaid — Use Case Diagram</span>
+        <button class="copy-btn" onclick="copyCode('code-usecase')">Copy</button>
+      </div>
+      <pre id="code-usecase">flowchart TB
+    UserActor(["👤 User / Student"])
+    AdminActor(["🔐 Admin"])
+
+    subgraph SystemBoundary["  🖥️  Lab Device Rental System  "]
+        direction TB
+
+        subgraph UC_USER["User Actions"]
+            UC1(["View Device Status"])
+            UC2(["Reserve Device"])
+            UC3(["Join Queue"])
+            UC4(["Stop Own Session"])
+            UC5(["Report Broken Device"])
+        end
+
+        UC_Auth(["Enter Admin Password"])
+
+        subgraph UC_ADMIN["Admin-Only Actions"]
+            UC6(["Force-Stop Any Session"])
+            UC7(["Skip Maintenance Buffer"])
+            UC8(["Mark Device as Fixed"])
+            UC11(["View Usage Logs"])
+            UC12(["Edit Usage Log"])
+            UC13(["Delete Usage Log"])
+
+            subgraph UC_DEVICES["Manage Devices"]
+                UC9a(["Add Device"])
+                UC9b(["Edit Device"])
+                UC9c(["Delete Device"])
+            end
+
+            subgraph UC_CONFIG["Configure Lab Settings"]
+                UC10a(["Set Open / Close Hours"])
+                UC10b(["Toggle Manual Closure"])
+                UC10c(["Change Admin Password"])
+                UC10d(["Set Buffer Duration"])
+            end
+        end
+    end
+
+    UserActor --> UC1
+    UserActor --> UC2
+    UserActor --> UC3
+    UserActor --> UC4
+    UserActor --> UC5
+
+    AdminActor --> UC1
+    AdminActor --> UC2
+    AdminActor --> UC3
+    AdminActor --> UC4
+    AdminActor --> UC5
+    AdminActor --> UC_Auth
+
+    UC_Auth -. "&lt;&lt;include&gt;&gt;" .-> UC6
+    UC_Auth -. "&lt;&lt;include&gt;&gt;" .-> UC7
+    UC_Auth -. "&lt;&lt;include&gt;&gt;" .-> UC8
+    UC_Auth -. "&lt;&lt;include&gt;&gt;" .-> UC_DEVICES
+    UC_Auth -. "&lt;&lt;include&gt;&gt;" .-> UC_CONFIG
+    UC_Auth -. "&lt;&lt;include&gt;&gt;" .-> UC11
+    UC_Auth -. "&lt;&lt;include&gt;&gt;" .-> UC12
+    UC_Auth -. "&lt;&lt;include&gt;&gt;" .-> UC13
+
+    UC6 -. "&lt;&lt;extend&gt;&gt;" .-> UC4</pre>
+    </div>
+  </section>
+
+  <!-- ─────────────────── DFD LEVEL 0 ─────────────────── -->
+  <section class="diagram-section" id="dfd-level-0">
+    <div class="section-header">
+      <div class="section-number">2</div>
+      <div>
+        <h2>DFD Level 0 — Context Diagram</h2>
+        <p>Highest-level view: the entire system as a single process with all external entities and data flows.</p>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <span class="icon">ℹ️</span>
+      <div>
+        <strong>Shapes:</strong> Stadium <code>([...])</code> = external entity &nbsp;|&nbsp; Rectangle <code>[...]</code> = process &nbsp;|&nbsp; Cylinder <code>[(...)]</code> = data store.
+        Every arrow label represents a real data exchange across the system boundary.
+      </div>
+    </div>
+
+    <div class="diagram-card">
+      <div class="diagram-render">
+        <div class="mermaid" id="mermaid-dfd0">
+flowchart LR
+    User(["👤 User\n(Student)"])
+    Admin(["🔐 Admin"])
+    Pusher(["⚡ Pusher Service\n(WebSocket)"])
+    MySQL[("🗄️ MySQL\nDatabase")]
+    FileStore[("📁 File\nStorage")]
+
+    System["⬛ 1.0\nLab Device\nRental System"]
+
+    User -->|"Reserve / queue request\n(name, phone, studentId,\nduration, sessionPassword)" | System
+    User -->|"Stop own session\n(sessionPassword, reason)"| System
+    User -->|"Report broken device\n(reason)"| System
+    User -->|"Upload session photo\n(base64 image)"| System
+    User -->|"View device status request"| System
+
+    System -->|"Device list & live status"| User
+    System -->|"Confirmation / error response"| User
+
+    Admin -->|"Force-stop any session\n(adminPassword, reason, clearQueue)"| System
+    Admin -->|"Skip maintenance buffer\n(adminPassword)"| System
+    Admin -->|"Mark device as fixed"| System
+    Admin -->|"Add / edit / delete device\n(name, model, type)"| System
+    Admin -->|"Update lab settings\n(hours, password, bufferMinutes)"| System
+    Admin -->|"Edit / delete usage log"| System
+
+    System -->|"Logs, device list,\nlab settings"| Admin
+
+    System -->|"Trigger printers_updated\non lab-channel"| Pusher
+    Pusher -->|"WebSocket push\n(live device state)"| User
+    Pusher -->|"WebSocket push\n(live device state)"| Admin
+
+    System -->|"Read / write Printer,\nUsageLog, LabSettings"| MySQL
+    MySQL -->|"Printer records,\nUsageLogs, LabSettings"| System
+
+    System -->|"Save reservation photo\n(to /uploads)"| FileStore
+    FileStore -->|"Serve photo URL\n(GET /api/uploads/...)"| System
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span>Mermaid — DFD Level 0</span>
+        <button class="copy-btn" onclick="copyCode('code-dfd0')">Copy</button>
+      </div>
+      <pre id="code-dfd0">flowchart LR
+    User(["👤 User\n(Student)"])
+    Admin(["🔐 Admin"])
+    Pusher(["⚡ Pusher Service\n(WebSocket)"])
+    MySQL[("🗄️ MySQL\nDatabase")]
+    FileStore[("📁 File\nStorage")]
+
+    System["⬛ 1.0\nLab Device\nRental System"]
+
+    User -->|"Reserve / queue request\n(name, phone, studentId,\nduration, sessionPassword)"| System
+    User -->|"Stop own session\n(sessionPassword, reason)"| System
+    User -->|"Report broken device\n(reason)"| System
+    User -->|"Upload session photo\n(base64 image)"| System
+    User -->|"View device status request"| System
+
+    System -->|"Device list & live status"| User
+    System -->|"Confirmation / error response"| User
+
+    Admin -->|"Force-stop any session\n(adminPassword, reason, clearQueue)"| System
+    Admin -->|"Skip maintenance buffer\n(adminPassword)"| System
+    Admin -->|"Mark device as fixed"| System
+    Admin -->|"Add / edit / delete device\n(name, model, type)"| System
+    Admin -->|"Update lab settings\n(hours, password, bufferMinutes)"| System
+    Admin -->|"Edit / delete usage log"| System
+
+    System -->|"Logs, device list,\nlab settings"| Admin
+
+    System -->|"Trigger printers_updated\non lab-channel"| Pusher
+    Pusher -->|"WebSocket push\n(live device state)"| User
+    Pusher -->|"WebSocket push\n(live device state)"| Admin
+
+    System -->|"Read / write Printer,\nUsageLog, LabSettings"| MySQL
+    MySQL -->|"Printer records,\nUsageLogs, LabSettings"| System
+
+    System -->|"Save reservation photo\n(to /uploads)"| FileStore
+    FileStore -->|"Serve photo URL\n(GET /api/uploads/...)"| System</pre>
+    </div>
+  </section>
+
+  <!-- ─────────────────── DFD LEVEL 1 ─────────────────── -->
+  <section class="diagram-section" id="dfd-level-1">
+    <div class="section-header">
+      <div class="section-number">3</div>
+      <div>
+        <h2>DFD Level 1 — System Decomposition</h2>
+        <p>The system broken into 8 sub-processes, showing internal data flows between processes, data stores, and external entities.</p>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <span class="icon">ℹ️</span>
+      <div>
+        <strong>Data stores:</strong> D1 Printer &nbsp;|&nbsp; D2 UsageLog &nbsp;|&nbsp; D3 LabSettings &nbsp;|&nbsp; D4 File Storage.
+        Process 1.8 (Real-time Notification) is triggered by every state-changing process and pushes a single <code>printers_updated</code> event to Pusher.
+      </div>
+    </div>
+
+    <div class="diagram-card">
+      <div class="diagram-render">
+        <div class="mermaid" id="mermaid-dfd1">
+flowchart TD
+    UserExt(["👤 User\n(Student)"])
+    AdminExt(["🔐 Admin"])
+    PusherExt(["⚡ Pusher Service"])
+
+    D1[("D1\nPrinter")]
+    D2[("D2\nUsageLog")]
+    D3[("D3\nLabSettings")]
+    D4[("D4\nFile Storage")]
+
+    P11["1.1\nAuthentication &\nAccess Control"]
+    P12["1.2\nManage\nDevices"]
+    P13["1.3\nProcess\nReservation"]
+    P14["1.4\nManage\nQueue"]
+    P15["1.5\nManage Session\nLifecycle"]
+    P16["1.6\nRecord\nUsage Logs"]
+    P17["1.7\nConfigure\nLab Settings"]
+    P18["1.8\nReal-time\nNotification"]
+
+    AdminExt -->|"Admin password"| P11
+    P11 -->|"Auth result (granted / denied)"| AdminExt
+    P11 -->|"Read adminPassword"| D3
+    P11 -->|"Validated access token"| P12
+    P11 -->|"Validated access token"| P15
+    P11 -->|"Validated access token"| P16
+    P11 -->|"Validated access token"| P17
+
+    AdminExt -->|"Create / update / delete\ndevice request"| P12
+    P12 <-->|"Read / write device record"| D1
+    P12 -->|"Emit state change"| P18
+    P12 -->|"Updated device list"| AdminExt
+
+    UserExt -->|"Reserve request\n(user info, duration, photo)"| P13
+    P13 -->|"Read device availability"| D1
+    P13 -->|"Write status=in-use,\ncurrentUser, endTime"| D1
+    P13 -->|"Save photo file"| D4
+    D4 -->|"Return photo URL"| P13
+    P13 -->|"Emit state change"| P18
+    P13 -->|"Confirmation"| UserExt
+
+    UserExt -->|"Join queue request\n(user info)"| P14
+    P14 -->|"Read device state"| D1
+    P14 -->|"Write nextReservation"| D1
+    P14 -->|"Save queue photo"| D4
+    P14 -->|"Emit state change"| P18
+    P14 -->|"Queue confirmation"| UserExt
+
+    UserExt -->|"Stop own session\n(sessionPassword, reason)"| P15
+    AdminExt -->|"Force-stop / skip buffer /\nmark fixed / resolve"| P15
+    P15 -->|"Read device state"| D1
+    P15 -->|"Read bufferMinutes"| D3
+    P15 -->|"Update device status\n(buffer / available / in-use)"| D1
+    P15 -->|"Create log entry"| P16
+    P15 -->|"Emit state change"| P18
+    P15 -->|"Updated status"| UserExt
+    P15 -->|"Updated status"| AdminExt
+
+    P16 -->|"Write log record"| D2
+    AdminExt -->|"Edit / delete log request"| P16
+    P16 <-->|"Read / update / delete log"| D2
+    P16 -->|"Log data"| AdminExt
+
+    AdminExt -->|"Update settings\n(hours, password, buffer)"| P17
+    P17 <-->|"Read / write settings"| D3
+    P17 -->|"Emit state change"| P18
+    P17 -->|"Saved settings"| AdminExt
+
+    P18 -->|"Trigger printers_updated\non lab-channel"| PusherExt
+    PusherExt -->|"WebSocket push"| UserExt
+    PusherExt -->|"WebSocket push"| AdminExt
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span>Mermaid — DFD Level 1</span>
+        <button class="copy-btn" onclick="copyCode('code-dfd1')">Copy</button>
+      </div>
+      <pre id="code-dfd1">flowchart TD
+    UserExt(["👤 User\n(Student)"])
+    AdminExt(["🔐 Admin"])
+    PusherExt(["⚡ Pusher Service"])
+
+    D1[("D1\nPrinter")]
+    D2[("D2\nUsageLog")]
+    D3[("D3\nLabSettings")]
+    D4[("D4\nFile Storage")]
+
+    P11["1.1\nAuthentication &\nAccess Control"]
+    P12["1.2\nManage\nDevices"]
+    P13["1.3\nProcess\nReservation"]
+    P14["1.4\nManage\nQueue"]
+    P15["1.5\nManage Session\nLifecycle"]
+    P16["1.6\nRecord\nUsage Logs"]
+    P17["1.7\nConfigure\nLab Settings"]
+    P18["1.8\nReal-time\nNotification"]
+
+    AdminExt -->|"Admin password"| P11
+    P11 -->|"Auth result (granted / denied)"| AdminExt
+    P11 -->|"Read adminPassword"| D3
+    P11 -->|"Validated access token"| P12
+    P11 -->|"Validated access token"| P15
+    P11 -->|"Validated access token"| P16
+    P11 -->|"Validated access token"| P17
+
+    AdminExt -->|"Create / update / delete\ndevice request"| P12
+    P12 &lt;-->|"Read / write device record"| D1
+    P12 -->|"Emit state change"| P18
+    P12 -->|"Updated device list"| AdminExt
+
+    UserExt -->|"Reserve request\n(user info, duration, photo)"| P13
+    P13 -->|"Read device availability"| D1
+    P13 -->|"Write status=in-use,\ncurrentUser, endTime"| D1
+    P13 -->|"Save photo file"| D4
+    D4 -->|"Return photo URL"| P13
+    P13 -->|"Emit state change"| P18
+    P13 -->|"Confirmation"| UserExt
+
+    UserExt -->|"Join queue request\n(user info)"| P14
+    P14 -->|"Read device state"| D1
+    P14 -->|"Write nextReservation"| D1
+    P14 -->|"Save queue photo"| D4
+    P14 -->|"Emit state change"| P18
+    P14 -->|"Queue confirmation"| UserExt
+
+    UserExt -->|"Stop own session\n(sessionPassword, reason)"| P15
+    AdminExt -->|"Force-stop / skip buffer /\nmark fixed / resolve"| P15
+    P15 -->|"Read device state"| D1
+    P15 -->|"Read bufferMinutes"| D3
+    P15 -->|"Update device status\n(buffer / available / in-use)"| D1
+    P15 -->|"Create log entry"| P16
+    P15 -->|"Emit state change"| P18
+    P15 -->|"Updated status"| UserExt
+    P15 -->|"Updated status"| AdminExt
+
+    P16 -->|"Write log record"| D2
+    AdminExt -->|"Edit / delete log request"| P16
+    P16 &lt;-->|"Read / update / delete log"| D2
+    P16 -->|"Log data"| AdminExt
+
+    AdminExt -->|"Update settings\n(hours, password, buffer)"| P17
+    P17 &lt;-->|"Read / write settings"| D3
+    P17 -->|"Emit state change"| P18
+    P17 -->|"Saved settings"| AdminExt
+
+    P18 -->|"Trigger printers_updated\non lab-channel"| PusherExt
+    PusherExt -->|"WebSocket push"| UserExt
+    PusherExt -->|"WebSocket push"| AdminExt</pre>
+    </div>
+  </section>
+
+  <!-- ─────────────────── ERD ─────────────────── -->
+  <section class="diagram-section" id="erd">
+    <div class="section-header">
+      <div class="section-number">4</div>
+      <div>
+        <h2>Entity Relationship Diagram (ERD)</h2>
+        <p>All three database tables with columns, data types, and relationships. Based on <code>prisma/schema.prisma</code>.</p>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <span class="icon">ℹ️</span>
+      <div>
+        <strong>Note:</strong> <code>UserReservation</code> is <em>not a database table</em> — it is a structured JSON object embedded inside <code>Printer.currentUser</code> and <code>Printer.nextReservation</code>. It is shown here to document the JSON shape. The <code>Printer → UsageLog</code> relationship is a <em>logical foreign key</em> (no DB-level constraint) via <code>printerId</code>. <code>LabSettings</code> is a singleton (id always = 1).
+      </div>
+    </div>
+
+    <div class="diagram-card">
+      <div class="diagram-render">
+        <div class="mermaid" id="mermaid-erd">
+erDiagram
+
+    Printer {
+        String   id              PK "PRN-XXXX or COM-XXXX"
+        String   name
+        String   model
+        String   type               "printer or computer"
+        String   status             "available, in-use, buffer, broken"
+        DateTime endTime            "nullable — session expiry"
+        DateTime bufferEndTime      "nullable — buffer expiry"
+        String   brokenReason       "nullable"
+        Json     currentUser        "nullable — embedded UserReservation"
+        Json     nextReservation    "nullable — embedded UserReservation"
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    UsageLog {
+        String   id              PK "UUID auto-generated"
+        String   printerId          "logical FK to Printer.id"
+        String   printerName        "denormalized device name"
+        String   userName
+        String   studentId
+        Int      usageTime          "session duration in minutes"
+        DateTime startTime
+        DateTime endTime
+        String   photoUrl           "nullable — reservation photo path"
+        String   stopReason         "nullable"
+        String   statusAtEnd        "completed, force-stopped, broken"
+        String   deviceType         "printer or computer"
+        DateTime createdAt
+    }
+
+    LabSettings {
+        Int      id              PK "singleton — always 1"
+        Boolean  isManuallyClosed
+        String   openTime           "HH:mm format"
+        String   closeTime          "HH:mm format"
+        String   adminPassword      "default: admin123"
+        Int      bufferMinutes      "default: 5"
+        DateTime updatedAt
+    }
+
+    UserReservation {
+        String  name
+        String  phone
+        String  studentId
+        Int     durationInMinutes
+        String  photoUrl            "nullable"
+        String  sessionPassword     "nullable — used to force-stop own session"
+        Boolean notifyWhenReady     "nullable"
+    }
+
+    Printer ||--o{ UsageLog : "has logs  (printerId)"
+    Printer |o--o| UserReservation : "currentUser  (JSON)"
+    Printer |o--o| UserReservation : "nextReservation  (JSON)"
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span>Mermaid — ERD</span>
+        <button class="copy-btn" onclick="copyCode('code-erd')">Copy</button>
+      </div>
+      <pre id="code-erd">erDiagram
+
+    Printer {
+        String   id              PK "PRN-XXXX or COM-XXXX"
+        String   name
+        String   model
+        String   type               "printer or computer"
+        String   status             "available, in-use, buffer, broken"
+        DateTime endTime            "nullable — session expiry"
+        DateTime bufferEndTime      "nullable — buffer expiry"
+        String   brokenReason       "nullable"
+        Json     currentUser        "nullable — embedded UserReservation"
+        Json     nextReservation    "nullable — embedded UserReservation"
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    UsageLog {
+        String   id              PK "UUID auto-generated"
+        String   printerId          "logical FK to Printer.id"
+        String   printerName        "denormalized device name"
+        String   userName
+        String   studentId
+        Int      usageTime          "session duration in minutes"
+        DateTime startTime
+        DateTime endTime
+        String   photoUrl           "nullable — reservation photo path"
+        String   stopReason         "nullable"
+        String   statusAtEnd        "completed, force-stopped, broken"
+        String   deviceType         "printer or computer"
+        DateTime createdAt
+    }
+
+    LabSettings {
+        Int      id              PK "singleton — always 1"
+        Boolean  isManuallyClosed
+        String   openTime           "HH:mm format"
+        String   closeTime          "HH:mm format"
+        String   adminPassword      "default: admin123"
+        Int      bufferMinutes      "default: 5"
+        DateTime updatedAt
+    }
+
+    UserReservation {
+        String  name
+        String  phone
+        String  studentId
+        Int     durationInMinutes
+        String  photoUrl            "nullable"
+        String  sessionPassword     "nullable — used to force-stop own session"
+        Boolean notifyWhenReady     "nullable"
+    }
+
+    Printer ||--o{ UsageLog : "has logs  (printerId)"
+    Printer |o--o| UserReservation : "currentUser  (JSON)"
+    Printer |o--o| UserReservation : "nextReservation  (JSON)"</pre>
+    </div>
+  </section>
+
+  <!-- ─────────────────── API Reference ─────────────────── -->
+  <section class="diagram-section" id="api-ref">
+    <div class="section-header">
+      <div class="section-number" style="background:var(--muted)">★</div>
+      <div>
+        <h2>API Endpoints Reference</h2>
+        <p>All Next.js route handlers in <code>src/app/api/</code></p>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="background:var(--code-bg);border-bottom:2px solid var(--border)">
+            <th style="padding:10px 14px;text-align:left;font-weight:700">Method</th>
+            <th style="padding:10px 14px;text-align:left;font-weight:700">Endpoint</th>
+            <th style="padding:10px 14px;text-align:left;font-weight:700">Description</th>
+            <th style="padding:10px 14px;text-align:left;font-weight:700">Auth</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 14px"><span style="background:#dbeafe;color:#1e40af;border-radius:4px;padding:2px 7px;font-weight:700;font-size:11px">GET</span></td><td style="padding:8px 14px;font-family:monospace">/api/printers</td><td style="padding:8px 14px;color:var(--muted)">List all devices</td><td style="padding:8px 14px">None</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 14px"><span style="background:#dcfce7;color:#166534;border-radius:4px;padding:2px 7px;font-weight:700;font-size:11px">POST</span></td><td style="padding:8px 14px;font-family:monospace">/api/printers</td><td style="padding:8px 14px;color:var(--muted)">Create new device (name, model, type)</td><td style="padding:8px 14px">Admin</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 14px"><span style="background:#fef9c3;color:#713f12;border-radius:4px;padding:2px 7px;font-weight:700;font-size:11px">PATCH</span></td><td style="padding:8px 14px;font-family:monospace">/api/printers/[id]</td><td style="padding:8px 14px;color:var(--muted)">Update device details</td><td style="padding:8px 14px">Admin</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 14px"><span style="background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 7px;font-weight:700;font-size:11px">DELETE</span></td><td style="padding:8px 14px;font-family:monospace">/api/printers/[id]</td><td style="padding:8px 14px;color:var(--muted)">Remove device from fleet</td><td style="padding:8px 14px">Admin</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 14px"><span style="background:#dcfce7;color:#166534;border-radius:4px;padding:2px 7px;font-weight:700;font-size:11px">POST</span></td><td style="padding:8px 14px;font-family:monospace">/api/printers/[id]/reserve</td><td style="padding:8px 14px;color:var(--muted)">Instant reservation → status: in-use</td><td style="padding:8px 14px">None</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 14px"><span style="background:#dcfce7;color:#166534;border-radius:4px;padding:2px 7px;font-weight:700;font-size:11px">POST</span></td><td style="padding:8px 14px;font-family:monospace">/api/printers/[id]/queue</td><td style="padding:8px 14px;color:var(--muted)">Join queue → sets nextReservation</td><td style="padding:8px 14px">None</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 14px"><span style="background:#dcfce7;color:#166534;border-radius:4px;padding:2px 7px;font-weight:700;font-size:11px">POST</span></td><td style="padding:8px 14px;font-family:monospace">/api/printers/[id]/force-stop</td><td style="padding:8px 14px;color:var(--muted)">Stop session (session or admin password)</td><td style="padding:8px 14px">Session pwd / Admin</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 14px"><span style="background:#dcfce7;color:#166534;border-radius:4px;padding:2px 7px;font-weight:700;font-size:11px">POST</span></td><td style="padding:8px 14px;font-family:monospace">/api/printers/[id]/resolve</td><td style="padding:8px 14px;color:var(--muted)">Auto-resolve timer/buffer (skip buffer admin)</td><td style="padding:8px 14px">Admin (early skip)</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 14px"><span style="background:#dcfce7;color:#166534;border-radius:4px;padding:2px 7px;font-weight:700;font-size:11px">POST</span></td><td style="padding:8px 14px;font-family:monospace">/api/printers/[id]/report-broken</td><td style="padding:8px 14px;color:var(--muted)">Report malfunction → status: broken</td><td style="padding:8px 14px">None</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 14px"><span style="background:#dcfce7;color:#166534;border-radius:4px;padding:2px 7px;font-weight:700;font-size:11px">POST</span></td><td style="padding:8px 14px;font-family:monospace">/api/printers/[id]/reset</td><td style="padding:8px 14px;color:var(--muted)">Mark broken device as fixed → available</td><td style="padding:8px 14px">Admin</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 14px"><span style="background:#dbeafe;color:#1e40af;border-radius:4px;padding:2px 7px;font-weight:700;font-size:11px">GET</span></td><td style="padding:8px 14px;font-family:monospace">/api/logs</td><td style="padding:8px 14px;color:var(--muted)">Fetch all usage logs (desc by date)</td><td style="padding:8px 14px">Admin (UI guard)</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 14px"><span style="background:#fef9c3;color:#713f12;border-radius:4px;padding:2px 7px;font-weight:700;font-size:11px">PATCH</span></td><td style="padding:8px 14px;font-family:monospace">/api/logs/[id]</td><td style="padding:8px 14px;color:var(--muted)">Edit usage log fields</td><td style="padding:8px 14px">Admin</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 14px"><span style="background:#fee2e2;color:#991b1b;border-radius:4px;padding:2px 7px;font-weight:700;font-size:11px">DELETE</span></td><td style="padding:8px 14px;font-family:monospace">/api/logs/[id]</td><td style="padding:8px 14px;color:var(--muted)">Delete log entry</td><td style="padding:8px 14px">Admin</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 14px"><span style="background:#dbeafe;color:#1e40af;border-radius:4px;padding:2px 7px;font-weight:700;font-size:11px">GET</span></td><td style="padding:8px 14px;font-family:monospace">/api/settings</td><td style="padding:8px 14px;color:var(--muted)">Fetch lab settings (creates default if absent)</td><td style="padding:8px 14px">None</td></tr>
+          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 14px"><span style="background:#fef9c3;color:#713f12;border-radius:4px;padding:2px 7px;font-weight:700;font-size:11px">PATCH</span></td><td style="padding:8px 14px;font-family:monospace">/api/settings</td><td style="padding:8px 14px;color:var(--muted)">Update lab settings (hours, password, buffer)</td><td style="padding:8px 14px">Admin (UI guard)</td></tr>
+          <tr><td style="padding:8px 14px"><span style="background:#dbeafe;color:#1e40af;border-radius:4px;padding:2px 7px;font-weight:700;font-size:11px">GET</span></td><td style="padding:8px 14px;font-family:monospace">/api/uploads/[...path]</td><td style="padding:8px 14px;color:var(--muted)">Serve uploaded reservation photos</td><td style="padding:8px 14px">None</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ─────────────────── Device Lifecycle ─────────────────── -->
+  <section class="diagram-section" id="lifecycle">
+    <div class="section-header">
+      <div class="section-number" style="background:var(--muted)">★</div>
+      <div>
+        <h2>Device Status Lifecycle</h2>
+        <p>State machine for a device from creation through all transitions.</p>
+      </div>
+    </div>
+
+    <div class="diagram-card">
+      <div class="diagram-render">
+        <div class="mermaid">
+stateDiagram-v2
+    [*] --> available : Device created
+
+    available --> in_use : POST /reserve\n(User fills booking form)
+    available --> broken : POST /report-broken\n(User reports malfunction)
+
+    in_use --> buffer : Timer expires (auto)\nor POST /force-stop\n(User or Admin)
+    in_use --> broken : POST /report-broken\nwhile session active
+
+    buffer --> available : bufferEndTime passes\nno queue
+    buffer --> in_use : bufferEndTime passes\nnextReservation exists
+    buffer --> in_use : POST /resolve\n(Admin skip buffer\n+ queue exists)
+    buffer --> available : POST /resolve\n(Admin skip buffer\n+ no queue)
+
+    broken --> available : POST /reset\n(Admin marks fixed)
+
+    state in_use {
+        [*] --> session_active
+        session_active --> session_active : Countdown timer\nrunning
+        session_active --> [*] : User force-stop\nor timer expires
+    }
+
+    state buffer {
+        [*] --> cooldown
+        cooldown --> [*] : 5-min timer\nor admin skip
+    }
+        </div>
+      </div>
+    </div>
+
+    <div class="lifecycle">
+      <span class="lc-state lc-available">available</span>
+      <span class="lc-arrow">→ reserve →</span>
+      <span class="lc-state lc-inuse">in-use</span>
+      <span class="lc-arrow">→ stop/expire →</span>
+      <span class="lc-state lc-buffer">buffer</span>
+      <span class="lc-arrow">→ timer/skip →</span>
+      <span class="lc-state lc-available">available</span>
+      &nbsp;&nbsp;
+      <span class="lc-arrow">|</span>
+      &nbsp;&nbsp;
+      <span class="lc-state lc-available">available</span>
+      <span class="lc-arrow">→ report →</span>
+      <span class="lc-state lc-broken">broken</span>
+      <span class="lc-arrow">→ admin fix →</span>
+      <span class="lc-state lc-available">available</span>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // ─── Theme toggle ───
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-icon').textContent = isDark ? '🌙' : '☀️';
+    document.getElementById('theme-label').textContent = isDark ? 'Dark Mode' : 'Light Mode';
+    // Re-init mermaid after theme change
+    setTimeout(initMermaid, 50);
+  }
+
+  // ─── Copy code ───
+  function copyCode(id) {
+    const el = document.getElementById(id);
+    navigator.clipboard.writeText(el.textContent).then(() => {
+      const btn = el.closest('.code-block').querySelector('.copy-btn');
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.style.color = '#16a34a';
+      setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+    });
+  }
+
+  // ─── Mermaid init ───
+  function initMermaid() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: isDark ? 'dark' : 'default',
+      themeVariables: isDark ? {
+        primaryColor: '#1e3a5f',
+        primaryTextColor: '#e2e8f0',
+        primaryBorderColor: '#334155',
+        lineColor: '#60a5fa',
+        secondaryColor: '#1e293b',
+        tertiaryColor: '#0f172a',
+        background: '#1e293b',
+        mainBkg: '#1e293b',
+        nodeBorder: '#334155',
+        clusterBkg: '#0f172a',
+        titleColor: '#e2e8f0',
+        edgeLabelBackground: '#1e293b',
+        attributeBackgroundColorEven: '#1e293b',
+        attributeBackgroundColorOdd: '#0f172a',
+      } : {
+        primaryColor: '#eff6ff',
+        primaryTextColor: '#1a202c',
+        primaryBorderColor: '#bfdbfe',
+        lineColor: '#3b82f6',
+        secondaryColor: '#f8f9fa',
+        tertiaryColor: '#f1f5f9',
+        background: '#ffffff',
+      },
+      flowchart: { curve: 'basis', padding: 20 },
+      er: { diagramPadding: 20 },
+      securityLevel: 'loose',
+    });
+
+    // Clear old SVG renders and re-render
+    document.querySelectorAll('.mermaid').forEach(el => {
+      const src = el.textContent || el.getAttribute('data-original');
+      if (!el.getAttribute('data-original')) el.setAttribute('data-original', src);
+      el.removeAttribute('data-processed');
+      el.textContent = el.getAttribute('data-original');
+      el.innerHTML = el.getAttribute('data-original');
+    });
+
+    mermaid.run();
+  }
+
+  // ─── Boot ───
+  window.addEventListener('load', () => {
+    initMermaid();
+    // Highlight active nav link on scroll
+    const sections = document.querySelectorAll('section[id], div[id]');
+    const links = document.querySelectorAll('.sidebar nav a');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          links.forEach(a => {
+            a.style.fontWeight = a.getAttribute('href') === '#' + e.target.id ? '700' : '';
+            a.style.color = a.getAttribute('href') === '#' + e.target.id ? 'var(--accent)' : '';
+            a.style.borderLeftColor = a.getAttribute('href') === '#' + e.target.id ? 'var(--accent)' : 'transparent';
+          });
+        }
+      });
+    }, { threshold: 0.3 });
+    sections.forEach(s => observer.observe(s));
+  });
+</script>
+</body>
+</html>
